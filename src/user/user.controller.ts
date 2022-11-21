@@ -2,16 +2,10 @@ import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/commo
 import { UserService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { Req } from '@nestjs/common';
 
-@Controller('user')
+@Controller('users')
 export class UserController {
   constructor(private readonly userService: UserService) {}
-
-  @Post('register')
-  register(@Req() req) {
-    return this.userService.register(req.user);
-  }
 
   @Post()
   create(@Body() createUserDto: CreateUserDto) {
@@ -25,7 +19,12 @@ export class UserController {
 
   @Get(':id')
   findOne(@Param('id') id: string) {
-    return this.userService.findOne(+id);
+    return this.userService.findOne(id);
+  }
+
+  @Get('firebase_id/:id')
+  findOneByFirebaseId(@Param('id') id: string) {
+    return this.userService.findUserByFirebaseId(id)
   }
 
   @Patch(':id')

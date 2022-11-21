@@ -1,14 +1,14 @@
-import { MiddlewareConsumer } from '@nestjs/common';
-import { RequestMethod } from '@nestjs/common';
-import { NestModule } from '@nestjs/common';
+
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
 
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { AuthMiddleware } from './auth/auth.middleware';
 import { UserModule } from './user/user.module';
+import { AuthModule } from './auth/auth.module';
+import { ClipModule } from './clip/clip.module';
+import { CloudinaryModule } from './cloudinary/cloudinary.module';
 
 @Module({
   imports: [
@@ -21,23 +21,13 @@ import { UserModule } from './user/user.module';
       }),
     }),
     UserModule,
+    AuthModule,
+    ClipModule,
+    CloudinaryModule,
   ],
   controllers: [AppController],
   providers: [AppService],
 })
-export class AppModule implements NestModule {
-  configure(consumer: MiddlewareConsumer) {
-    consumer
-      .apply(AuthMiddleware)
-      .exclude(
-        {
-          path: 'clips/*',
-          method: RequestMethod.GET,
-        }
-      )
-      .forRoutes({
-        path: '*',
-        method: RequestMethod.ALL,
-      });
-  }
+export class AppModule {
+ 
 }

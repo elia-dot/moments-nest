@@ -1,23 +1,42 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
+import { InjectModel } from '@nestjs/mongoose';
+import { Model } from 'mongoose';
+import * as bcrypt from 'bcrypt';
+
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { UserDocument } from './schemas/user.schema';
+import { CloudinaryService } from 'src/cloudinary/cloudinary.service';
 
 @Injectable()
 export class UserService {
-  register(user) {
-    return {user};
+  constructor(
+    @InjectModel('User') private userModel: Model<UserDocument>,
+    private cloudinary: CloudinaryService,
+  ) {}
+
+  async create(createUserDto: CreateUserDto) {
+    const { password } = createUserDto;
+    const salt = bcrypt.genSaltSync(10);
+    const hash = bcrypt.hashSync(password, salt);
+    createUserDto.password = hash;
+    return await this.userModel.create(createUserDto);
   }
 
-  create(createUserDto: CreateUserDto) {
-    return 'This action adds a new user';
+  async findAll() {
+    return await this.userModel.find();
   }
 
-  findAll() {
-    return `This action returns all user`;
+  async findOne(id: string) {
+    return await this.userModel.findById(id);
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} user`;
+  async findUserByEmail(email: string) {
+    return await this.userModel.findOne({ email });
+  }
+
+  async findUserByFirebaseId(firebaseId: string) {
+    return await this.userModel.findOne({ firebaseId });
   }
 
   update(id: number, updateUserDto: UpdateUserDto) {
@@ -26,5 +45,11 @@ export class UserService {
 
   remove(id: number) {
     return `This action removes a #${id} user`;
+  }
+
+  async uploadImageToCloudinary(file: Express.Multer.File) {
+    return await this.cloudinary.uploadImage(file).catch(() => {
+      throw new BadRequestException('Invalid file type.');
+    });
   }
 }
